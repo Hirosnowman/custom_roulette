@@ -45,6 +45,11 @@ body {
     position: relative;
 }
 
+/* Ensure controls are ALWAYS at the top */
+.controls-overlay {
+    order: -1;
+}
+
 /* Common UI Elements */
 .primary-btn,
 .secondary-btn,
@@ -189,6 +194,8 @@ body.light-mode .secondary-btn {
         flex-direction: row;
         align-items: center;
         gap: 32px;
+        justify-content: center;
+        /* Center buttons */
         pointer-events: auto;
         /* Kept from original */
         background: transparent;
@@ -205,11 +212,16 @@ body.light-mode .secondary-btn {
         /* Kept from original */
     }
 
+    .header-minimal {
+        display: none;
+        /* Hide title on PC too */
+    }
+
     .header-minimal h1 {
         font-size: 1.5rem;
-        padding-right: 24px;
-        border-right: 2px solid var(--text-secondary);
-        margin-right: 24px;
+        padding-right: 0;
+        border-right: none;
+        margin-right: 0;
     }
 
     /* Wheel Centered & Large */
@@ -292,27 +304,25 @@ body.light-mode .secondary-btn {
         align-items: center;
         gap: 12px;
         width: 100%;
-        justify-content: space-between;
+        justify-content: center;
+        /* Center buttons */
         pointer-events: auto;
-        /* Kept from original */
         background: transparent;
-        /* Kept from original */
         backdrop-filter: none;
-        /* Kept from original */
         border: none;
-        /* Kept from original */
         border-radius: 0;
-        /* Kept from original */
         padding: 0;
-        /* Kept from original */
         box-shadow: none;
-        /* Kept from original */
+    }
+
+    .header-minimal {
+        display: none;
+        /* Hide title on mobile to focus on buttons */
     }
 
     .header-minimal h1 {
         font-size: 1.1rem;
         border: none;
-        /* No separator on mobile */
         margin: 0;
         padding: 0;
     }
@@ -430,9 +440,13 @@ h1 {
     /* Override gradient for version */
 }
 
-.actions {
+.action-buttons {
     display: flex;
     gap: 12px;
+    align-items: center;
+    /* Ensure vertical alignment */
+    flex-direction: row;
+    /* Explicitly horizontal */
 }
 
 button {
