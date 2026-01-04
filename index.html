@@ -23,59 +23,69 @@
             </div>
         </main>
 
-        <aside class="controls-panel">
-            <div class="panel-fixed">
-                <div class="header-row">
-                    <h1>Roulette <span class="version-tag">ver.0.3</span></h1>
-                    <button id="toggleSettingsBtn" class="icon-btn" title="Toggle Settings">▼</button>
+        <aside class="controls-overlay">
+            <div class="main-controls">
+                <div class="header-minimal">
+                    <h1>Roulette <span class="version-tag">ver.0.5</span></h1>
                 </div>
-                <div class="actions">
+                <div class="action-buttons">
                     <button id="spinBtn" class="primary-btn">SPIN</button>
                     <button id="resetBtn" class="secondary-btn">RESET</button>
-                </div>
-            </div>
-
-            <div id="settingsContent" class="panel-scrollable">
-                <div class="preset-controls">
-                    <div class="preset-row">
-                        <select id="presetSelect">
-                            <option value="">Select Preset...</option>
-                        </select>
-                        <button id="loadPresetBtn" class="secondary-btn small-btn">Load</button>
-                        <button id="deletePresetBtn" class="secondary-btn small-btn"
-                            style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">Del</button>
-                    </div>
-                    <div class="preset-row">
-                        <input type="text" id="presetNameInput" placeholder="New Preset Name">
-                        <button id="savePresetBtn" class="secondary-btn small-btn">Save</button>
-                    </div>
-                </div>
-
-                <div class="setting-controls">
-                    <label>
-                        <input type="checkbox" id="shuffleToggle"> Shuffle Layout
-                    </label>
-                    <label class="bg-picker-label">
-                        Page Color: <input type="color" id="bgColorPicker" value="#1a1a2a">
-                    </label>
-                    <label class="spin-time-label">
-                        Time(s): <input type="number" id="spinTimeInput" value="6" min="1" max="60"
-                            style="width: 50px;">
-                    </label>
-                    <button id="themeToggleBtn" class="icon-btn" title="Toggle Light/Dark Mode">🌙</button>
-                </div>
-
-                <div class="items-list-container">
-                    <div class="list-header">
-                        <span>Items</span>
-                        <button id="addItemBtn" class="icon-btn" title="Add Item">+</button>
-                    </div>
-                    <div id="itemsList" class="items-list">
-                        <!-- Items injected here -->
-                    </div>
+                    <button id="openSettingsBtn" class="secondary-btn icon-btn" title="Open Settings">⚙️</button>
                 </div>
             </div>
         </aside>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="settings-modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button id="closeSettingsBtn" class="icon-btn close-btn">×</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="preset-controls">
+                        <div class="preset-row">
+                            <select id="presetSelect">
+                                <option value="">Select Preset...</option>
+                            </select>
+                            <button id="loadPresetBtn" class="secondary-btn small-btn">Load</button>
+                            <button id="deletePresetBtn" class="secondary-btn small-btn"
+                                style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">Del</button>
+                        </div>
+                        <div class="preset-row">
+                            <input type="text" id="presetNameInput" placeholder="New Preset Name">
+                            <button id="savePresetBtn" class="secondary-btn small-btn">Save</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-controls">
+                        <label>
+                            <input type="checkbox" id="shuffleToggle"> Shuffle
+                        </label>
+                        <label class="bg-picker-label">
+                            Color: <input type="color" id="bgColorPicker" value="#1a1a2a">
+                        </label>
+                        <label class="spin-time-label">
+                            Time(s): <input type="number" id="spinTimeInput" value="6" min="1" max="60"
+                                style="width: 50px;">
+                        </label>
+                        <button id="themeToggleBtn" class="icon-btn" title="Toggle Light/Dark Mode">🌙</button>
+                    </div>
+
+                    <div class="items-list-container">
+                        <div class="list-header">
+                            <span>Items</span>
+                            <button id="addItemBtn" class="icon-btn" title="Add Item">+</button>
+                        </div>
+                        <div id="itemsList" class="items-list">
+                            <!-- Items injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="script.js?v=20260105-3"></script>
 </body>
