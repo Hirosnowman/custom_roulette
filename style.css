@@ -97,6 +97,17 @@ h1 {
     background: linear-gradient(to right, #fff, #94a3b8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.version-tag {
+    font-size: 0.5em;
+    opacity: 0.6;
+    font-weight: 400;
+    -webkit-text-fill-color: var(--text-secondary);
+    /* Override gradient for version */
 }
 
 .actions {
