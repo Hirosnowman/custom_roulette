@@ -174,7 +174,7 @@ class RouletteApp {
         localStorage.setItem('roulette_presets', JSON.stringify(this.presets));
         this.updatePresetSelect();
         document.getElementById('presetSelect').value = name;
-        alert(`Preset "${name}" saved!`);
+        alert(`Preset "${name}" saved! (with Settings)`);
     }
 
     loadPreset(name) {
@@ -213,6 +213,8 @@ class RouletteApp {
             this.renderItemsList();
             this.drawWheel();
             this.saveData();
+
+            alert(`Loaded preset: ${name}` + (hasSettings ? " (Settings Restored)" : " (Items Only)"));
         }
     }
 
