@@ -526,7 +526,8 @@ class RouletteApp {
             color: item.color,
             weight: item.weight,
             splitCount: item.splitCount,
-            textSize: item.textSize || 20
+            textSize: item.textSize || 20,
+            textColor: item.textColor || '#ffffff'
         }));
 
         const payload = {
@@ -557,7 +558,7 @@ class RouletteApp {
                     itemsData = [];
                 }
 
-                this.items = itemsData.map(d => new RouletteItem(d.id, d.name, d.color, d.weight, d.splitCount, d.textSize));
+                this.items = itemsData.map(d => new RouletteItem(d.id, d.name, d.color, d.weight, d.splitCount, d.textSize, d.textColor));
                 return true;
             } catch (e) {
                 console.error('Failed to load data', e);
