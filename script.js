@@ -151,25 +151,65 @@ class RouletteApp {
     }
 
     savePreset(name) {
+        // Save Items + Global Settings
         const data = this.items.map(item => ({
             id: item.id,
             name: item.name,
             color: item.color,
             weight: item.weight,
             splitCount: item.splitCount,
-            textSize: item.textSize
+            textSize: item.textSize,
+            textColor: item.textColor
         }));
-        this.presets[name] = data;
+
+        const presetData = {
+            items: data,
+            appBg: this.appBg,
+            isShuffled: this.isShuffled,
+            isLightMode: this.isLightMode,
+            spinTime: this.spinTime
+        };
+
+        this.presets[name] = presetData;
         localStorage.setItem('roulette_presets', JSON.stringify(this.presets));
         this.updatePresetSelect();
         document.getElementById('presetSelect').value = name;
-        alert(`Saved preset: ${name}`);
+        alert(`Preset "${name}" saved!`);
     }
 
     loadPreset(name) {
         if (this.presets[name]) {
             const data = this.presets[name];
-            this.items = data.map(d => new RouletteItem(d.id || Date.now().toString(), d.name, d.color, d.weight, d.splitCount, d.textSize, d.textColor));
+
+            // Handle legacy presets
+            if (Array.isArray(data)) {
+                this.items = data.map(d => new RouletteItem(d.id || Date.now().toString(), d.name, d.color, d.weight, d.splitCount, d.textSize, d.textColor));
+            } else {
+                // New format with settings
+                if (data.items) {
+                    this.items = data.items.map(d => new RouletteItem(d.id || Date.now().toString(), d.name, d.color, d.weight, d.splitCount, d.textSize, d.textColor));
+                }
+
+                if (data.appBg !== undefined) this.updateAppBackground(data.appBg);
+                if (data.isShuffled !== undefined) {
+                    this.isShuffled = !!data.isShuffled;
+                    const toggle = document.getElementById('shuffleToggle');
+                    if (toggle) toggle.checked = this.isShuffled;
+                }
+                if (data.isLightMode !== undefined) {
+                    this.isLightMode = !!data.isLightMode;
+                    this.applyTheme();
+                }
+                if (data.spinTime !== undefined) {
+                    this.spinTime = data.spinTime;
+                    const timeInput = document.getElementById('spinTimeInput');
+                    if (timeInput) timeInput.value = this.spinTime;
+                }
+
+                const bgPicker = document.getElementById('bgColorPicker');
+                if (bgPicker) bgPicker.value = this.appBg;
+            }
+
             this.renderItemsList();
             this.drawWheel();
             this.saveData();
