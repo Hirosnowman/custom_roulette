@@ -143,6 +143,46 @@ button {
     background: var(--accent-color);
 }
 
+/* Presets */
+.preset-controls {
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 16px;
+}
+
+.preset-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.preset-row:last-child {
+    margin-bottom: 0;
+}
+
+.preset-row select,
+.preset-row input[type="text"] {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.preset-row select:focus,
+.preset-row input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.small-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
 /* Items List */
 .items-list-container {
     flex: 1;
@@ -184,7 +224,7 @@ button {
 /* Item Row */
 .item-row {
     display: grid;
-    grid-template-columns: auto 1fr auto auto;
+    grid-template-columns: auto 1fr auto auto auto auto;
     gap: 8px;
     align-items: center;
     background: rgba(255, 255, 255, 0.05);
@@ -226,14 +266,27 @@ button {
     border-bottom: 1px solid var(--accent-color);
 }
 
-.item-weight {
-    width: 40px;
+.item-weight,
+.item-split {
+    width: 50px;
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
     text-align: center;
     border-radius: 4px;
     padding: 4px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.input-group .label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
 }
 
 .item-delete {

@@ -26,6 +26,20 @@
         <aside class="controls-panel">
             <header>
                 <h1>Roulette</h1>
+
+                <div class="preset-controls">
+                    <div class="preset-row">
+                        <select id="presetSelect">
+                            <option value="">Select Preset...</option>
+                        </select>
+                        <button id="loadPresetBtn" class="secondary-btn small-btn">Load</button>
+                    </div>
+                    <div class="preset-row">
+                        <input type="text" id="presetNameInput" placeholder="New Preset Name">
+                        <button id="savePresetBtn" class="secondary-btn small-btn">Save</button>
+                    </div>
+                </div>
+
                 <div class="actions">
                     <button id="spinBtn" class="primary-btn">SPIN</button>
                     <button id="resetBtn" class="secondary-btn">RESET</button>

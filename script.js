@@ -1,10 +1,11 @@
 class RouletteItem {
-    constructor(id, name, color, weight = 1, splitCount = 1) {
+    constructor(id, name, color, weight = 1, splitCount = 1, textSize = 20) {
         this.id = id;
         this.name = name;
         this.color = color;
         this.weight = weight;
         this.splitCount = splitCount;
+        this.textSize = textSize;
     }
 }
 
@@ -15,25 +16,93 @@ class RouletteApp {
         this.items = [];
         this.isSpinning = false;
         this.currentRotation = 0;
+        this.presets = JSON.parse(localStorage.getItem('roulette_presets') || '{}');
 
         this.init();
     }
 
     init() {
-        // Adjust canvas resolution
         const size = 600;
         this.canvas.width = size;
         this.canvas.height = size;
 
         this.bindEvents();
-        this.addDefaultItems();
-        this.drawWheel();
+        this.updatePresetSelect();
+
+        // Load last session or default
+        if (!this.loadData()) {
+            this.addDefaultItems();
+        } else {
+            this.renderItemsList();
+            this.drawWheel();
+        }
     }
 
     bindEvents() {
         document.getElementById('spinBtn').addEventListener('click', () => this.spin());
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('result-overlay').classList.remove('visible');
+            document.getElementById('result-overlay').classList.add('hidden');
+            this.isSpinning = false;
+        });
         document.getElementById('addItemBtn').addEventListener('click', () => this.addNewItem());
-        // More bindings...
+
+        // Preset Events
+        document.getElementById('savePresetBtn').addEventListener('click', () => {
+            const name = document.getElementById('presetNameInput').value.trim();
+            if (name) {
+                this.savePreset(name);
+                document.getElementById('presetNameInput').value = '';
+            }
+        });
+
+        document.getElementById('loadPresetBtn').addEventListener('click', () => {
+            const name = document.getElementById('presetSelect').value;
+            if (name) {
+                this.loadPreset(name);
+            }
+        });
+
+        // Window Resize? Canvas is fixed px but CSS scales it.
+    }
+
+    updatePresetSelect() {
+        const select = document.getElementById('presetSelect');
+        select.innerHTML = '<option value="">Select Preset...</option>';
+        Object.keys(this.presets).forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    }
+
+    savePreset(name) {
+        const data = this.items.map(item => ({
+            id: item.id,
+            name: item.name,
+            color: item.color,
+            weight: item.weight,
+            splitCount: item.splitCount,
+            textSize: item.textSize
+        }));
+        this.presets[name] = data;
+        localStorage.setItem('roulette_presets', JSON.stringify(this.presets));
+        this.updatePresetSelect();
+        // Also select it
+        document.getElementById('presetSelect').value = name;
+        alert(`Saved preset: ${name}`);
+    }
+
+    loadPreset(name) {
+        if (this.presets[name]) {
+            const data = this.presets[name];
+            // Re-generate IDs to avoid conflicts if needed, or keep same.
+            this.items = data.map(d => new RouletteItem(d.id || Date.now().toString(), d.name, d.color, d.weight, d.splitCount, d.textSize));
+            this.renderItemsList();
+            this.drawWheel();
+            this.saveData(); // Save as current session
+        }
     }
 
     addDefaultItems() {
@@ -41,11 +110,21 @@ class RouletteApp {
         this.items.push(new RouletteItem('2', 'Burger', this.getRandomColor(), 1));
         this.items.push(new RouletteItem('3', 'Pizza', this.getRandomColor(), 1));
         this.renderItemsList();
+        this.saveData();
     }
 
     getRandomColor() {
-        const hue = Math.floor(Math.random() * 360);
-        return `hsl(${hue}, 70%, 60%)`;
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    convertHslToHex(color) {
+        if (color && color.startsWith('#')) return color;
+        return '#FF0000';
     }
 
     addNewItem() {
@@ -54,6 +133,7 @@ class RouletteApp {
         this.items.push(newItem);
         this.renderItemsList();
         this.drawWheel();
+        this.saveData();
     }
 
     renderItemsList() {
@@ -63,96 +143,296 @@ class RouletteApp {
         this.items.forEach(item => {
             const el = document.createElement('div');
             el.className = 'item-row';
+
+            // Ensure textSize has a value
+            const size = item.textSize || 20;
+
             el.innerHTML = `
-                <input type="color" value="${this.convertHslToHex(item.color)}" class="color-picker" data-id="${item.id}">
-                <input type="text" value="${item.name}" class="item-name" data-id="${item.id}">
-                <input type="number" value="${item.weight}" min="1" class="item-weight" data-id="${item.id}">
+                <input type="color" value="${this.convertHslToHex(item.color)}" class="color-picker" data-id="${item.id}" title="Color">
+                <input type="text" value="${item.name}" class="item-name" data-id="${item.id}" placeholder="Name">
+                <div class="input-group" title="Weight">
+                    <span class="label">Ratio</span>
+                    <input type="number" value="${item.weight}" min="1" class="item-weight" data-id="${item.id}">
+                </div>
+                <div class="input-group" title="Split Count">
+                    <span class="label">Split</span>
+                    <input type="number" value="${item.splitCount}" min="1" class="item-split" data-id="${item.id}">
+                </div>
+                <div class="input-group" title="Text Size">
+                    <span class="label">Size</span>
+                    <input type="number" value="${size}" min="1" class="item-text-size" data-id="${item.id}">
+                </div>
                 <button class="item-delete" data-id="${item.id}">×</button>
             `;
             listContainer.appendChild(el);
 
-            // Add listeners for immediate updates
             const colorInput = el.querySelector('.color-picker');
             const nameInput = el.querySelector('.item-name');
             const weightInput = el.querySelector('.item-weight');
+            const splitInput = el.querySelector('.item-split');
+            const textSizeInput = el.querySelector('.item-text-size');
             const deleteBtn = el.querySelector('.item-delete');
+
+            const update = () => {
+                this.drawWheel();
+                this.saveData();
+            };
 
             colorInput.addEventListener('input', (e) => {
                 item.color = e.target.value;
-                this.drawWheel();
+                update();
             });
 
             nameInput.addEventListener('input', (e) => {
                 item.name = e.target.value;
-                // No need to redraw immediately for name mostly, but maybe if we show text on wheel
-                this.drawWheel();
+                update();
             });
 
             weightInput.addEventListener('change', (e) => {
                 const val = parseInt(e.target.value);
                 if (val > 0) item.weight = val;
-                this.drawWheel();
+                update();
+            });
+
+            splitInput.addEventListener('change', (e) => {
+                const val = parseInt(e.target.value);
+                if (val > 0) item.splitCount = val;
+                update();
+            });
+
+            textSizeInput.addEventListener('change', (e) => {
+                const val = parseInt(e.target.value);
+                if (val > 0) item.textSize = val;
+                update();
             });
 
             deleteBtn.addEventListener('click', () => {
                 this.items = this.items.filter(i => i.id !== item.id);
                 this.renderItemsList();
                 this.drawWheel();
+                this.saveData();
             });
         });
     }
 
-    // Helper to accept HSL or Hex, but input type=color needs Hex
-    convertHslToHex(color) {
-        // Very basic check, if already hex return it
-        if (color.startsWith('#')) return color;
+    getSegments() {
+        let segments = [];
 
-        // Ensure we are working with an HSL string
-        // Assuming format "hsl(h, s%, l%)"
-        // For simplicity in this rough draft, we might just force hex generation in getRandomColor
-        // But let's fix getRandomColor to return hex for simplicity with input[type=color]
-        return '#FF0000'; // Placeholder fix in next step
+        // Contiguous Logic:
+        // We push the item 'splitCount' times in a row.
+        this.items.forEach(item => {
+            const count = item.splitCount || 1;
+            for (let i = 0; i < count; i++) {
+                segments.push({
+                    ...item,
+                    sliceWeight: item.weight / count
+                });
+            }
+        });
+
+        return segments;
     }
 
     drawWheel() {
-        // Placeholder draw
+        if (!this.ctx) return;
         const ctx = this.ctx;
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-        const radius = this.canvas.width / 2 - 20;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = width / 2 - 20;
 
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.clearRect(0, 0, width, height);
 
-        // Draw standard wheel
+        const segments = this.getSegments();
+        if (segments.length === 0) return;
+
+        const totalWeight = segments.reduce((acc, seg) => acc + seg.sliceWeight, 0);
+        let startAngle = this.currentRotation;
+
+        segments.forEach(seg => {
+            const sliceAngle = (seg.sliceWeight / totalWeight) * 2 * Math.PI;
+            const endAngle = startAngle + sliceAngle;
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.closePath();
+
+            ctx.fillStyle = seg.color;
+            ctx.fill();
+            ctx.stroke();
+
+            // Text
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(startAngle + sliceAngle / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#fff";
+
+            const fontSize = seg.textSize || 20;
+            ctx.font = `bold ${fontSize}px Outfit, sans-serif`;
+
+            ctx.shadowColor = "rgba(0,0,0,0.5)";
+            ctx.shadowBlur = 4;
+            // Slightly adjustable baseline logic
+            ctx.fillText(seg.name, radius * 0.85, fontSize * 0.35);
+            ctx.restore();
+
+            startAngle = endAngle;
+        });
+
+        // Center decoration
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#334155';
+        ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+        ctx.fillStyle = "#fff";
         ctx.fill();
-        ctx.stroke();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#000";
     }
 
     spin() {
         if (this.isSpinning) return;
+        if (this.items.length === 0) return;
+
         this.isSpinning = true;
-        console.log('Spinning...');
-        // Animation logic to come
-        setTimeout(() => this.isSpinning = false, 2000);
-    }
-}
+        document.getElementById('result-overlay').classList.add('hidden');
+        document.getElementById('spinBtn').disabled = true;
 
-// Fix random color to return Hex for easier binding
-RouletteApp.prototype.getRandomColor = function () {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
+        const startRotation = this.currentRotation;
+        // Random spin amount
+        const randomOffset = Math.random() * 2 * Math.PI;
+        const finalTarget = startRotation + (10 * 2 * Math.PI) + randomOffset;
 
-// Overwrite the helper to just pass through for now since we switched to Hex
-RouletteApp.prototype.convertHslToHex = function (color) {
-    return color;
+        const duration = 5000 + Math.random() * 2000;
+        const startTime = performance.now();
+        let lastTickAngle = startRotation;
+
+        const animate = (time) => {
+            const elapsed = time - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Ease out cubic
+            const ease = 1 - Math.pow(1 - progress, 3);
+
+            this.currentRotation = startRotation + (finalTarget - startRotation) * ease;
+            this.drawWheel();
+
+            // Sound check (simple approx)
+            // Should play sound every X radians (e.g., segment boundary)?
+            // Or just based on movement amount for mechanical feel.
+            if (Math.abs(this.currentRotation - lastTickAngle) > 0.5) {
+                this.playSound('tick');
+                lastTickAngle = this.currentRotation;
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                this.isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                this.showResult();
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    showResult() {
+        const normalizedRotation = this.currentRotation % (2 * Math.PI);
+        let angleOnWheel = (1.5 * Math.PI - normalizedRotation) % (2 * Math.PI);
+        if (angleOnWheel < 0) angleOnWheel += 2 * Math.PI;
+
+        const segments = this.getSegments();
+        const totalWeight = segments.reduce((acc, seg) => acc + seg.sliceWeight, 0);
+
+        let currentAngle = 0;
+        let winner = null;
+
+        for (const seg of segments) {
+            const sliceAngle = (seg.sliceWeight / totalWeight) * 2 * Math.PI;
+            if (angleOnWheel >= currentAngle && angleOnWheel < currentAngle + sliceAngle) {
+                winner = seg;
+                break;
+            }
+            currentAngle += sliceAngle;
+        }
+
+        if (winner) {
+            const overlay = document.getElementById('result-overlay');
+            const text = document.getElementById('result-text');
+            text.textContent = winner.name;
+            overlay.classList.remove('hidden');
+            overlay.classList.add('visible');
+            this.playSound('win');
+        }
+    }
+
+    initAudio() {
+        try {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) { console.warn("Audio API not supported"); }
+    }
+
+    playSound(type) {
+        if (!this.audioCtx) this.initAudio();
+        if (!this.audioCtx) return;
+
+        const osc = this.audioCtx.createOscillator();
+        const gainNode = this.audioCtx.createGain();
+
+        osc.connect(gainNode);
+        gainNode.connect(this.audioCtx.destination);
+
+        const now = this.audioCtx.currentTime;
+
+        if (type === 'tick') {
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+            gainNode.gain.setValueAtTime(0.1, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (type === 'win') {
+            [440, 554, 659].forEach((freq, i) => {
+                const o = this.audioCtx.createOscillator();
+                const g = this.audioCtx.createGain();
+                o.connect(g);
+                g.connect(this.audioCtx.destination);
+                o.frequency.value = freq;
+                g.gain.setValueAtTime(0.2, now + i * 0.1);
+                g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.5);
+                o.start(now + i * 0.1);
+                o.stop(now + i * 0.1 + 0.5);
+            });
+        }
+    }
+
+    saveData() {
+        const data = this.items.map(item => ({
+            id: item.id,
+            name: item.name,
+            color: item.color,
+            weight: item.weight,
+            splitCount: item.splitCount,
+            textSize: item.textSize || 20
+        }));
+        localStorage.setItem('roulette_data', JSON.stringify(data));
+    }
+
+    loadData() {
+        const json = localStorage.getItem('roulette_data');
+        if (json) {
+            try {
+                const data = JSON.parse(json);
+                this.items = data.map(d => new RouletteItem(d.id, d.name, d.color, d.weight, d.splitCount, d.textSize));
+                return true;
+            } catch (e) {
+                console.error('Failed to load data', e);
+            }
+        }
+        return false;
+    }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
