@@ -16,6 +16,7 @@ class RouletteApp {
         this.items = [];
         this.isSpinning = false;
         this.currentRotation = 0;
+        this.isShuffled = false;
         this.presets = JSON.parse(localStorage.getItem('roulette_presets') || '{}');
 
         this.init();
@@ -29,9 +30,8 @@ class RouletteApp {
         this.bindEvents();
         this.updatePresetSelect();
 
-        // Load last session or default
         if (!this.loadData()) {
-            this.addDefaultItems();
+            this.addDefaultItems(); // Also saves
         } else {
             this.renderItemsList();
             this.drawWheel();
@@ -46,6 +46,17 @@ class RouletteApp {
             this.isSpinning = false;
         });
         document.getElementById('addItemBtn').addEventListener('click', () => this.addNewItem());
+
+        // Shuffle
+        const shuffleToggle = document.getElementById('shuffleToggle');
+        if (shuffleToggle) {
+            shuffleToggle.checked = this.isShuffled;
+            shuffleToggle.addEventListener('change', (e) => {
+                this.isShuffled = e.target.checked;
+                this.drawWheel();
+                this.saveData();
+            });
+        }
 
         // Preset Events
         document.getElementById('savePresetBtn').addEventListener('click', () => {
@@ -62,8 +73,6 @@ class RouletteApp {
                 this.loadPreset(name);
             }
         });
-
-        // Window Resize? Canvas is fixed px but CSS scales it.
     }
 
     updatePresetSelect() {
@@ -89,7 +98,6 @@ class RouletteApp {
         this.presets[name] = data;
         localStorage.setItem('roulette_presets', JSON.stringify(this.presets));
         this.updatePresetSelect();
-        // Also select it
         document.getElementById('presetSelect').value = name;
         alert(`Saved preset: ${name}`);
     }
@@ -97,11 +105,10 @@ class RouletteApp {
     loadPreset(name) {
         if (this.presets[name]) {
             const data = this.presets[name];
-            // Re-generate IDs to avoid conflicts if needed, or keep same.
             this.items = data.map(d => new RouletteItem(d.id || Date.now().toString(), d.name, d.color, d.weight, d.splitCount, d.textSize));
             this.renderItemsList();
             this.drawWheel();
-            this.saveData(); // Save as current session
+            this.saveData();
         }
     }
 
@@ -143,8 +150,6 @@ class RouletteApp {
         this.items.forEach(item => {
             const el = document.createElement('div');
             el.className = 'item-row';
-
-            // Ensure textSize has a value
             const size = item.textSize || 20;
 
             el.innerHTML = `
@@ -218,17 +223,30 @@ class RouletteApp {
     getSegments() {
         let segments = [];
 
-        // Contiguous Logic:
-        // We push the item 'splitCount' times in a row.
-        this.items.forEach(item => {
-            const count = item.splitCount || 1;
-            for (let i = 0; i < count; i++) {
-                segments.push({
-                    ...item,
-                    sliceWeight: item.weight / count
+        if (this.isShuffled) {
+            let workingItems = this.items.map(i => ({ ...i, remainingSplits: i.splitCount }));
+            while (workingItems.some(i => i.remainingSplits > 0)) {
+                workingItems.forEach(item => {
+                    if (item.remainingSplits > 0) {
+                        segments.push({
+                            ...item,
+                            sliceWeight: item.weight / item.splitCount
+                        });
+                        item.remainingSplits--;
+                    }
                 });
             }
-        });
+        } else {
+            this.items.forEach(item => {
+                const count = item.splitCount || 1;
+                for (let i = 0; i < count; i++) {
+                    segments.push({
+                        ...item,
+                        sliceWeight: item.weight / count
+                    });
+                }
+            });
+        }
 
         return segments;
     }
@@ -275,7 +293,6 @@ class RouletteApp {
 
             ctx.shadowColor = "rgba(0,0,0,0.5)";
             ctx.shadowBlur = 4;
-            // Slightly adjustable baseline logic
             ctx.fillText(seg.name, radius * 0.85, fontSize * 0.35);
             ctx.restore();
 
@@ -300,7 +317,6 @@ class RouletteApp {
         document.getElementById('spinBtn').disabled = true;
 
         const startRotation = this.currentRotation;
-        // Random spin amount
         const randomOffset = Math.random() * 2 * Math.PI;
         const finalTarget = startRotation + (10 * 2 * Math.PI) + randomOffset;
 
@@ -311,16 +327,11 @@ class RouletteApp {
         const animate = (time) => {
             const elapsed = time - startTime;
             const progress = Math.min(elapsed / duration, 1);
-
-            // Ease out cubic
             const ease = 1 - Math.pow(1 - progress, 3);
 
             this.currentRotation = startRotation + (finalTarget - startRotation) * ease;
             this.drawWheel();
 
-            // Sound check (simple approx)
-            // Should play sound every X radians (e.g., segment boundary)?
-            // Or just based on movement amount for mechanical feel.
             if (Math.abs(this.currentRotation - lastTickAngle) > 0.5) {
                 this.playSound('tick');
                 lastTickAngle = this.currentRotation;
@@ -417,15 +428,30 @@ class RouletteApp {
             splitCount: item.splitCount,
             textSize: item.textSize || 20
         }));
-        localStorage.setItem('roulette_data', JSON.stringify(data));
+
+        const payload = {
+            items: data,
+            isShuffled: this.isShuffled
+        };
+
+        localStorage.setItem('roulette_data', JSON.stringify(payload));
     }
 
     loadData() {
         const json = localStorage.getItem('roulette_data');
         if (json) {
             try {
-                const data = JSON.parse(json);
-                this.items = data.map(d => new RouletteItem(d.id, d.name, d.color, d.weight, d.splitCount, d.textSize));
+                let parsed = JSON.parse(json);
+                let itemsData = parsed;
+
+                if (!Array.isArray(parsed) && parsed.items) {
+                    itemsData = parsed.items;
+                    this.isShuffled = !!parsed.isShuffled;
+                } else if (!Array.isArray(parsed)) {
+                    itemsData = [];
+                }
+
+                this.items = itemsData.map(d => new RouletteItem(d.id, d.name, d.color, d.weight, d.splitCount, d.textSize));
                 return true;
             } catch (e) {
                 console.error('Failed to load data', e);

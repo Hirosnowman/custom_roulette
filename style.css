@@ -183,6 +183,27 @@ button {
     font-size: 0.85rem;
 }
 
+.shuffle-control {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.shuffle-control label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.shuffle-control input[type="checkbox"] {
+    accent-color: var(--accent-color);
+    width: 16px;
+    height: 16px;
+}
+
 /* Items List */
 .items-list-container {
     flex: 1;
