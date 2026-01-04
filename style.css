@@ -51,15 +51,18 @@ body {
     align-items: center;
     position: relative;
     height: 100%;
+    padding-bottom: 100px;
+    /* Leave space for bottom controls */
     /* Removed hardcoded gradient so user preference (--app-bg) shows through */
 }
 
 .roulette-container {
     position: relative;
-    width: 90vmin;
-    height: 90vmin;
-    max-width: none;
-    max-height: none;
+    width: 85vmin;
+    height: 85vmin;
+    max-width: 100%;
+    max-height: calc(100% - 20px);
+    /* prevent touching edges */
     filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
 }
 
