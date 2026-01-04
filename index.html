@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Roulette</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <main class="roulette-area">
+            <div class="roulette-container">
+                <canvas id="rouletteCanvas"></canvas>
+                <div class="pointer">▼</div>
+            </div>
+            <div id="result-overlay" class="hidden">
+                <h2 id="result-text">WINNER</h2>
+            </div>
+        </main>
+
+        <aside class="controls-panel">
+            <header>
+                <h1>Roulette</h1>
+                <div class="actions">
+                    <button id="spinBtn" class="primary-btn">SPIN</button>
+                    <button id="resetBtn" class="secondary-btn">RESET</button>
+                </div>
+            </header>
+
+            <div class="items-list-container">
+                <div class="list-header">
+                    <span>Items</span>
+                    <button id="addItemBtn" class="icon-btn">+</button>
+                </div>
+                <div id="itemsList" class="items-list">
+                    <!-- Items will be injected here via JS -->
+                </div>
+            </div>
+        </aside>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
