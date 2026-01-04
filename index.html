@@ -44,10 +44,18 @@
                     <button id="spinBtn" class="primary-btn">SPIN</button>
                     <button id="resetBtn" class="secondary-btn">RESET</button>
                 </div>
-                <div class="shuffle-control">
+                <div class="setting-controls">
                     <label>
                         <input type="checkbox" id="shuffleToggle"> Shuffle Layout
                     </label>
+                    <label class="bg-picker-label">
+                        Page Color: <input type="color" id="bgColorPicker" value="#1a1a2a">
+                    </label>
+                    <label class="spin-time-label">
+                        Time(s): <input type="number" id="spinTimeInput" value="6" min="1" max="60"
+                            style="width: 50px;">
+                    </label>
+                    <button id="themeToggleBtn" class="icon-btn" title="Toggle Light/Dark Mode">🌙</button>
                 </div>
             </header>
 

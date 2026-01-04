@@ -17,6 +17,9 @@ class RouletteApp {
         this.isSpinning = false;
         this.currentRotation = 0;
         this.isShuffled = false;
+        this.appBg = '#1a1a2a'; // Default
+        this.isLightMode = false;
+        this.spinTime = 6; // Default seconds
         this.presets = JSON.parse(localStorage.getItem('roulette_presets') || '{}');
 
         this.init();
@@ -27,15 +30,23 @@ class RouletteApp {
         this.canvas.width = size;
         this.canvas.height = size;
 
+        // Restore settings before binding events so inputs have correct values
+        this.loadData();
+
         this.bindEvents();
         this.updatePresetSelect();
 
-        if (!this.loadData()) {
-            this.addDefaultItems(); // Also saves
+        // Initial render logic
+        if (this.items.length === 0) {
+            this.addDefaultItems();
         } else {
             this.renderItemsList();
             this.drawWheel();
         }
+
+        // Apply loaded BG
+        this.updateAppBackground(this.appBg);
+        this.applyTheme();
     }
 
     bindEvents() {
@@ -58,6 +69,39 @@ class RouletteApp {
             });
         }
 
+        // Background
+        const bgPicker = document.getElementById('bgColorPicker');
+        if (bgPicker) {
+            bgPicker.value = this.appBg;
+            bgPicker.addEventListener('input', (e) => {
+                this.updateAppBackground(e.target.value);
+                this.saveData();
+            });
+        }
+
+        // Spin Time
+        const timeInput = document.getElementById('spinTimeInput');
+        if (timeInput) {
+            timeInput.value = this.spinTime;
+            timeInput.addEventListener('change', (e) => {
+                let val = parseFloat(e.target.value);
+                if (val < 0.1) val = 0.1; // allow fast
+                this.spinTime = val;
+                this.saveData();
+            });
+        }
+
+        // Theme Toggle
+        const themeBtn = document.getElementById('themeToggleBtn');
+        if (themeBtn) {
+            this.updateThemeBtnText();
+            themeBtn.addEventListener('click', () => {
+                this.isLightMode = !this.isLightMode;
+                this.applyTheme();
+                this.saveData();
+            });
+        }
+
         // Preset Events
         document.getElementById('savePresetBtn').addEventListener('click', () => {
             const name = document.getElementById('presetNameInput').value.trim();
@@ -73,6 +117,26 @@ class RouletteApp {
                 this.loadPreset(name);
             }
         });
+    }
+
+    updateAppBackground(color) {
+        this.appBg = color;
+        document.documentElement.style.setProperty('--app-bg', color);
+    }
+
+    applyTheme() {
+        if (this.isLightMode) {
+            document.body.classList.add('light-mode');
+        } else {
+            document.body.classList.remove('light-mode');
+        }
+        this.updateThemeBtnText();
+        this.drawWheel(); // Redraw for text color if canvas needs it? Canvas text assumes white currently.
+    }
+
+    updateThemeBtnText() {
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = this.isLightMode ? '☀️' : '🌙';
     }
 
     updatePresetSelect() {
@@ -105,7 +169,7 @@ class RouletteApp {
     loadPreset(name) {
         if (this.presets[name]) {
             const data = this.presets[name];
-            this.items = data.map(d => new RouletteItem(d.id || Date.now().toString(), d.name, d.color, d.weight, d.splitCount, d.textSize));
+            this.items = data.map(d => new RouletteItem(d.id || Date.now().toString(), d.name, d.color, d.weight, d.splitCount, d.textSize, d.textColor));
             this.renderItemsList();
             this.drawWheel();
             this.saveData();
@@ -151,27 +215,36 @@ class RouletteApp {
             const el = document.createElement('div');
             el.className = 'item-row';
             const size = item.textSize || 20;
+            const txtColor = item.textColor || '#ffffff';
 
             el.innerHTML = `
-                <input type="color" value="${this.convertHslToHex(item.color)}" class="color-picker" data-id="${item.id}" title="Color">
-                <input type="text" value="${item.name}" class="item-name" data-id="${item.id}" placeholder="Name">
-                <div class="input-group" title="Weight">
-                    <span class="label">Ratio</span>
-                    <input type="number" value="${item.weight}" min="1" class="item-weight" data-id="${item.id}">
+                <div class="row-top">
+                    <div class="color-group">
+                        <input type="color" value="${this.convertHslToHex(item.color)}" class="color-picker" data-id="${item.id}" title="Background Color">
+                        <input type="color" value="${txtColor}" class="text-color-picker" data-id="${item.id}" title="Text Color">
+                    </div>
+                    <input type="text" value="${item.name}" class="item-name" data-id="${item.id}" placeholder="Name">
+                    <button class="item-delete" data-id="${item.id}">×</button>
                 </div>
-                <div class="input-group" title="Split Count">
-                    <span class="label">Split</span>
-                    <input type="number" value="${item.splitCount}" min="1" class="item-split" data-id="${item.id}">
+                <div class="row-bottom">
+                    <div class="input-group" title="Weight">
+                        <span class="label">Ratio</span>
+                        <input type="number" value="${item.weight}" min="1" class="item-weight" data-id="${item.id}">
+                    </div>
+                    <div class="input-group" title="Split Count">
+                        <span class="label">Split</span>
+                        <input type="number" value="${item.splitCount}" min="1" class="item-split" data-id="${item.id}">
+                    </div>
+                    <div class="input-group" title="Text Size">
+                        <span class="label">Size</span>
+                        <input type="number" value="${size}" min="1" class="item-text-size" data-id="${item.id}">
+                    </div>
                 </div>
-                <div class="input-group" title="Text Size">
-                    <span class="label">Size</span>
-                    <input type="number" value="${size}" min="1" class="item-text-size" data-id="${item.id}">
-                </div>
-                <button class="item-delete" data-id="${item.id}">×</button>
             `;
             listContainer.appendChild(el);
 
             const colorInput = el.querySelector('.color-picker');
+            const textColorInput = el.querySelector('.text-color-picker');
             const nameInput = el.querySelector('.item-name');
             const weightInput = el.querySelector('.item-weight');
             const splitInput = el.querySelector('.item-split');
@@ -185,6 +258,11 @@ class RouletteApp {
 
             colorInput.addEventListener('input', (e) => {
                 item.color = e.target.value;
+                update();
+            });
+
+            textColorInput.addEventListener('input', (e) => {
+                item.textColor = e.target.value;
                 update();
             });
 
@@ -279,6 +357,10 @@ class RouletteApp {
 
             ctx.fillStyle = seg.color;
             ctx.fill();
+
+            // Contrast stroke
+            ctx.strokeStyle = this.isLightMode ? '#000000' : '#ffffff';
+            ctx.lineWidth = 2; // Make it slightly thicker
             ctx.stroke();
 
             // Text
@@ -286,13 +368,18 @@ class RouletteApp {
             ctx.translate(centerX, centerY);
             ctx.rotate(startAngle + sliceAngle / 2);
             ctx.textAlign = "right";
-            ctx.fillStyle = "#fff";
+
+            // Use custom text color, remove shadow
+            ctx.fillStyle = seg.textColor || "#ffffff";
 
             const fontSize = seg.textSize || 20;
             ctx.font = `bold ${fontSize}px Outfit, sans-serif`;
 
-            ctx.shadowColor = "rgba(0,0,0,0.5)";
-            ctx.shadowBlur = 4;
+            // REMOVED SHADOW to fix "gradient/ugly" look
+            // ctx.shadowColor = "rgba(0,0,0,0.5)";
+            // ctx.shadowBlur = 4;
+
+            // Slightly adjustable baseline logic
             ctx.fillText(seg.name, radius * 0.85, fontSize * 0.35);
             ctx.restore();
 
@@ -304,6 +391,9 @@ class RouletteApp {
         ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
         ctx.fillStyle = "#fff";
         ctx.fill();
+        ctx.strokeStyle = this.isLightMode ? '#000000' : '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
         ctx.shadowBlur = 10;
         ctx.shadowColor = "#000";
     }
@@ -313,25 +403,35 @@ class RouletteApp {
         if (this.items.length === 0) return;
 
         this.isSpinning = true;
-        document.getElementById('result-overlay').classList.add('hidden');
+
+        // Hide overlay immediately
+        const overlay = document.getElementById('result-overlay');
+        overlay.classList.remove('visible');
+        overlay.classList.add('hidden');
+
         document.getElementById('spinBtn').disabled = true;
 
         const startRotation = this.currentRotation;
         const randomOffset = Math.random() * 2 * Math.PI;
-        const finalTarget = startRotation + (10 * 2 * Math.PI) + randomOffset;
+        // Scale rotations by time (approx 2 rotations per second)
+        const rotations = Math.max(5, this.spinTime * 2);
+        const finalTarget = startRotation + (rotations * 2 * Math.PI) + randomOffset;
 
-        const duration = 5000 + Math.random() * 2000;
+        const duration = this.spinTime * 1000;
         const startTime = performance.now();
         let lastTickAngle = startRotation;
 
         const animate = (time) => {
             const elapsed = time - startTime;
             const progress = Math.min(elapsed / duration, 1);
+
+            // Ease out cubic
             const ease = 1 - Math.pow(1 - progress, 3);
 
             this.currentRotation = startRotation + (finalTarget - startRotation) * ease;
             this.drawWheel();
 
+            // Sound check (simple approx)
             if (Math.abs(this.currentRotation - lastTickAngle) > 0.5) {
                 this.playSound('tick');
                 lastTickAngle = this.currentRotation;
@@ -431,7 +531,10 @@ class RouletteApp {
 
         const payload = {
             items: data,
-            isShuffled: this.isShuffled
+            isShuffled: this.isShuffled,
+            appBg: this.appBg,
+            isLightMode: this.isLightMode,
+            spinTime: this.spinTime
         };
 
         localStorage.setItem('roulette_data', JSON.stringify(payload));
@@ -447,6 +550,9 @@ class RouletteApp {
                 if (!Array.isArray(parsed) && parsed.items) {
                     itemsData = parsed.items;
                     this.isShuffled = !!parsed.isShuffled;
+                    this.appBg = parsed.appBg || '#1a1a2a';
+                    this.isLightMode = !!parsed.isLightMode;
+                    this.spinTime = parsed.spinTime || 6;
                 } else if (!Array.isArray(parsed)) {
                     itemsData = [];
                 }
