@@ -44,25 +44,76 @@ body {
 }
 
 /* Roulette Area - Maximize Space */
+/* Controls Overlay (Static Top Block) */
+.controls-overlay {
+    position: relative;
+    /* Static positioning, not floating */
+    width: 100%;
+    background: var(--panel-bg);
+    border-bottom: var(--glass-border);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: center;
+    z-index: 50;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    /* Keep size constant */
+}
+
+.main-controls {
+    pointer-events: auto;
+    background: transparent;
+    /* Remove pill style background */
+    backdrop-filter: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    box-shadow: none;
+}
+
+/* Light Mode Adjustment for Overlay */
+body.light-mode .controls-overlay {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+body.light-mode .main-controls {
+    background: transparent;
+    border: none;
+}
+
+.header-minimal h1 {
+    font-size: 1.2rem;
+    margin: 0;
+    margin-right: 16px;
+    border-right: 2px solid rgba(255, 255, 255, 0.2);
+    padding-right: 16px;
+}
+
+/* Roulette Area - Remainder of screen */
 .roulette-area {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    height: 100%;
-    padding-bottom: 100px;
-    /* Leave space for bottom controls */
-    /* Removed hardcoded gradient so user preference (--app-bg) shows through */
+    width: 100%;
+    overflow: hidden;
+    padding: 20px;
+    /* Breathing room */
 }
 
 .roulette-container {
     position: relative;
-    width: 85vmin;
-    height: 85vmin;
-    max-width: 100%;
-    max-height: calc(100% - 20px);
-    /* prevent touching edges */
+    /* Smart sizing: fit within width OR height, whichever is smaller */
+    width: min(90vw, 65vh);
+    aspect-ratio: 1 / 1;
+    /* Force Square */
+    max-width: none;
+    max-height: none;
     filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
 }
 
@@ -85,45 +136,6 @@ canvas {
 
 /* Controls Overlay (Bottom Bar) */
 /* Controls Overlay (Floating Top) */
-.controls-overlay {
-    position: fixed;
-    top: 20px;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 100;
-}
-
-.main-controls {
-    pointer-events: auto;
-    background: rgba(30, 41, 59, 0.85);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50px;
-    padding: 8px 24px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.header-minimal h1 {
-    font-size: 1rem;
-    margin: 0;
-    margin-right: 12px;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    padding-right: 12px;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
 /* Make buttons simplified for floating bar */
 .primary-btn,
 .secondary-btn {
@@ -138,7 +150,8 @@ canvas {
 }
 
 /* Light Mode Adjustment for Overlay */
-body.light-mode .main-controls {
+/* Ensure Light Mode logic works for Modal */
+body.light-mode .modal-content {
     background: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
@@ -207,32 +220,23 @@ body.light-mode .main-controls {
     border-radius: 3px;
 }
 
-/* Responsive Media Query */
+/* Responsive/* Mobile Adjustments */
 @media (max-width: 768px) {
-    .app-container {
-        flex-direction: column;
-    }
+    /* Container sizing is handled by min(90vw, 85vh) above, so no override needed here */
 
     .roulette-area {
-        flex: 1;
-        min-height: 50vh;
-        /* Ensure wheel has space */
+        padding: 10px;
     }
 
-    .controls-panel {
-        width: 100%;
-        height: auto;
-        border-left: none;
-        border-top: var(--glass-border);
-        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
-        max-height: 50vh;
-        /* Default height on mobile */
+    /* Smaller fonts for mobile header */
+    .header-minimal h1 {
+        font-size: 1rem;
     }
 
-    /* When settings are hidden on mobile, panel should shrink */
-    .controls-panel.collapsed {
-        height: auto;
-        flex: 0 0 auto;
+    .primary-btn,
+    .secondary-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
     }
 }
 
