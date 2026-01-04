@@ -24,9 +24,18 @@
         </main>
 
         <aside class="controls-panel">
-            <header>
-                <h1>Roulette <span class="version-tag">ver.0.2</span></h1>
+            <div class="panel-fixed">
+                <div class="header-row">
+                    <h1>Roulette <span class="version-tag">ver.0.3</span></h1>
+                    <button id="toggleSettingsBtn" class="icon-btn" title="Toggle Settings">▼</button>
+                </div>
+                <div class="actions">
+                    <button id="spinBtn" class="primary-btn">SPIN</button>
+                    <button id="resetBtn" class="secondary-btn">RESET</button>
+                </div>
+            </div>
 
+            <div id="settingsContent" class="panel-scrollable">
                 <div class="preset-controls">
                     <div class="preset-row">
                         <select id="presetSelect">
@@ -42,10 +51,6 @@
                     </div>
                 </div>
 
-                <div class="actions">
-                    <button id="spinBtn" class="primary-btn">SPIN</button>
-                    <button id="resetBtn" class="secondary-btn">RESET</button>
-                </div>
                 <div class="setting-controls">
                     <label>
                         <input type="checkbox" id="shuffleToggle"> Shuffle Layout
@@ -59,15 +64,15 @@
                     </label>
                     <button id="themeToggleBtn" class="icon-btn" title="Toggle Light/Dark Mode">🌙</button>
                 </div>
-            </header>
 
-            <div class="items-list-container">
-                <div class="list-header">
-                    <span>Items</span>
-                    <button id="addItemBtn" class="icon-btn">+</button>
-                </div>
-                <div id="itemsList" class="items-list">
-                    <!-- Items will be injected here via JS -->
+                <div class="items-list-container">
+                    <div class="list-header">
+                        <span>Items</span>
+                        <button id="addItemBtn" class="icon-btn" title="Add Item">+</button>
+                    </div>
+                    <div id="itemsList" class="items-list">
+                        <!-- Items injected here -->
+                    </div>
                 </div>
             </div>
         </aside>

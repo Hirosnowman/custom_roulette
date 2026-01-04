@@ -76,6 +76,7 @@ canvas {
 }
 
 /* Controls Panel */
+/* Controls Panel Layout */
 .controls-panel {
     width: 350px;
     background: var(--panel-bg);
@@ -85,10 +86,83 @@ canvas {
     flex-direction: column;
     padding: 24px;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+    transition: width 0.3s ease;
+    z-index: 100;
 }
 
-header {
-    margin-bottom: 24px;
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+h1 {
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.panel-fixed {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.panel-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+/* Hidden State for Settings */
+.settings-hidden {
+    display: none !important;
+}
+
+/* Scrollbar for panel */
+.panel-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel-scrollable::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+/* Responsive Media Query */
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    .roulette-area {
+        flex: 1;
+        min-height: 50vh;
+        /* Ensure wheel has space */
+    }
+
+    .controls-panel {
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: var(--glass-border);
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+        max-height: 50vh;
+        /* Default height on mobile */
+    }
+
+    /* When settings are hidden on mobile, panel should shrink */
+    .controls-panel.collapsed {
+        height: auto;
+        flex: 0 0 auto;
+    }
 }
 
 h1 {

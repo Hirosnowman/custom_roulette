@@ -125,6 +125,22 @@ class RouletteApp {
                 this.deletePreset();
             });
         }
+
+        // Toggle Settings Panel
+        const toggleBtn = document.getElementById('toggleSettingsBtn');
+        const settingsContent = document.getElementById('settingsContent');
+        const panel = document.querySelector('.controls-panel');
+
+        if (toggleBtn && settingsContent) {
+            toggleBtn.addEventListener('click', () => {
+                settingsContent.classList.toggle('settings-hidden');
+                panel.classList.toggle('collapsed');
+                toggleBtn.textContent = settingsContent.classList.contains('settings-hidden') ? '▲' : '▼';
+
+                // Redraw to ensure canvas size is correct after layout change if needed
+                setTimeout(() => this.drawWheel(), 50);
+            });
+        }
     }
 
     updateAppBackground(color) {
