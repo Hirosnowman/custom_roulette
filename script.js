@@ -126,19 +126,36 @@ class RouletteApp {
             });
         }
 
-        // Toggle Settings Panel
-        const toggleBtn = document.getElementById('toggleSettingsBtn');
-        const settingsContent = document.getElementById('settingsContent');
-        const panel = document.querySelector('.controls-panel');
+        // Modal Settings
+        const openBtn = document.getElementById('openSettingsBtn');
+        const closeBtn = document.getElementById('closeSettingsBtn');
+        const modal = document.getElementById('settingsModal');
 
-        if (toggleBtn && settingsContent) {
-            toggleBtn.addEventListener('click', () => {
-                settingsContent.classList.toggle('settings-hidden');
-                panel.classList.toggle('collapsed');
-                toggleBtn.textContent = settingsContent.classList.contains('settings-hidden') ? '▲' : '▼';
+        if (openBtn && modal) {
+            openBtn.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+            });
+        }
 
-                // Redraw to ensure canvas size is correct after layout change if needed
-                setTimeout(() => this.drawWheel(), 50);
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+        }
+
+        // Close on outside click
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+
+        if (openBtn && modal) {
+            openBtn.addEventListener('click', () => {
+                console.log('Open Settings Clicked');
+                modal.classList.remove('hidden');
             });
         }
     }
