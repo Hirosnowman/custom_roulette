@@ -117,6 +117,14 @@ class RouletteApp {
                 this.loadPreset(name);
             }
         });
+
+        // Delete Preset
+        const delBtn = document.getElementById('deletePresetBtn');
+        if (delBtn) {
+            delBtn.addEventListener('click', () => {
+                this.deletePreset();
+            });
+        }
     }
 
     updateAppBackground(color) {
@@ -148,6 +156,18 @@ class RouletteApp {
             opt.textContent = name;
             select.appendChild(opt);
         });
+    }
+
+    deletePreset() {
+        const select = document.getElementById('presetSelect');
+        const name = select.value;
+        if (!name) return;
+
+        if (confirm(`Delete preset "${name}"?`)) {
+            delete this.presets[name];
+            localStorage.setItem('roulette_presets', JSON.stringify(this.presets));
+            this.updatePresetSelect();
+        }
     }
 
     savePreset(name) {
