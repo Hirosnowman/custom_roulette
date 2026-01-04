@@ -227,17 +227,14 @@ body.light-mode .secondary-btn {
     }
 
     .roulette-container {
-        /* On PC, fit to height usually, but respect width */
-        height: 80vh;
-        width: 80vh;
-        /* Start proportional to height */
-        max-width: 80vw;
-        /* Constrain if screen is narrow but tall? unlikely on PC */
+        /* Robust sizing for ANY PC aspect ratio (landscape or portrait monitor) */
+        /* It will be at most 80% of height OR 90% of width, whichever is smaller */
+        width: min(80vh, 90vw);
         aspect-ratio: 1 / 1;
         position: relative;
         filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.5));
         max-height: none;
-        /* Kept from original */
+        max-width: none;
     }
 
     canvas {
